@@ -1,13 +1,16 @@
-FROM python:3.9
+# syntax=docker/dockerfile:1.0.0-experimental
+FROM ghcr.io/cinnamon/kotaemon:main-full as base_image
 
 RUN useradd -m -u 1000 user
+RUN --mount=type=ssh chown -R user:user /app
+RUN --mount=type=ssh chown -R user:user /usr/local/lib/python3.10
 USER user
-ENV PATH="/home/user/.local/bin:$PATH"
-
 WORKDIR /app
 
-COPY --chown=user ./requirements.txt requirements.txt
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+COPY app.py /app
 
-COPY --chown=user . /app
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+ENV GRADIO_SERVER_NAME=0.0.0.0
+ENV KH_FEATURE_USER_MANAGEMENT=true
+
+ENTRYPOINT ["python", "app.py"]
+EXPOSE 7860
